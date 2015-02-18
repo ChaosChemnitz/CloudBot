@@ -44,7 +44,16 @@ class crlf_tcp(object):
         return socket.socket(socket.AF_INET, socket.TCP_NODELAY)
 
     def run(self):
-        self.socket.connect((self.host, self.port))
+        noerror = 0
+        while 1:
+	    try:
+                self.socket.connect((self.host, self.port))
+                break
+	    except socket.gaierror as e:
+                time.sleep(5)
+            except socket.timeout as e:
+                time.sleep(5)
+
         thread.start_new_thread(self.recv_loop, ())
         thread.start_new_thread(self.send_loop, ())
 
@@ -55,17 +64,25 @@ class crlf_tcp(object):
         return socket.timeout
 
     def handle_receive_exception(self, error, last_timestamp):
+	print("Receive exception: %s" % (error))
         if time.time() - last_timestamp > self.timeout:
+            print("Receive timeout. Restart connection.")
             self.iqueue.put(StopIteration)
             self.socket.close()
             return True
         return False
 
+    def handle_send_exception(self, error):
+        print("Send exception: %s" % (error))
+        self.iqueue.put(StopIteration)
+        self.socket.close()
+        return True
+
     def recv_loop(self):
         last_timestamp = time.time()
         while True:
             try:
-                data = self.recv_from_socket(4096)
+		data = self.recv_from_socket(4096)
                 self.ibuffer += data
                 if data:
                     last_timestamp = time.time()
@@ -79,6 +96,8 @@ class crlf_tcp(object):
                 if self.handle_receive_exception(e, last_timestamp):
                     return
                 continue
+            except AttributeError:
+                return
 
             while '\r\n' in self.ibuffer:
                 line, self.ibuffer = self.ibuffer.split('\r\n', 1)
@@ -86,13 +105,19 @@ class crlf_tcp(object):
 
     def send_loop(self):
         while True:
-            line = self.oqueue.get().splitlines()[0][:500]
-            print ">>> %r" % line
-            self.obuffer += line.encode('utf-8', 'replace') + '\r\n'
-            while self.obuffer:
-                sent = self.socket.send(self.obuffer)
-                self.obuffer = self.obuffer[sent:]
+            try:
+                line = self.oqueue.get().splitlines()[0][:500]
+                if line == StopIteration:
+                    return
+                print ">>> %r" % line
+                self.obuffer += line.encode('utf-8', 'replace') + '\r\n'
+                while self.obuffer:
+                    sent = self.socket.send(self.obuffer)
+                    self.obuffer = self.obuffer[sent:]
 
+            except socket.error as e:
+                 self.handle_send_exception(e)
+                 return
 
 class crlf_ssl_tcp(crlf_tcp):
     """Handles ssl tcp connetions that consist of utf-8 lines ending with crlf"""
@@ -114,9 +139,12 @@ class crlf_ssl_tcp(crlf_tcp):
 
     def handle_receive_exception(self, error, last_timestamp):
         # this is terrible
-        if not "timed out" in error.args[0]:
-            raise
+        #if not "timed out" in error.args[0]:
+        #    raise
         return crlf_tcp.handle_receive_exception(self, error, last_timestamp)
+
+    def handle_send_exception(self, error):
+        return crlf_tcp.handle_send_exception(self, error)
 
 
 irc_prefix_rem = re.compile(r'(.*?) (.*?) (.*)').match
