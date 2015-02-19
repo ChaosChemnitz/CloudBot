@@ -1,16 +1,16 @@
 {
     "connections": {
-        "esper": {
-            "server": "irc.esper.net",
-            "nick": "MyCloudBot",
-            "user": "cloudbot",
+        "hackint": {
+            "server": "irc.hackint.eu",
+            "nick": "antibot",
+            "user": "antibot",
             "realname": "CloudBot - http://git.io/cloudbotirc",
             "mode": "",
-            "nickserv_password": "",
-            "nickserv_user": "",
+            "_nickserv_password": "",
+            "-nickserv_user": "",
             "channels": [
-                "#cloudbot",
-                "#cloudbot2"
+                "#ChaosChemnitz",
+                "#logbot"
             ],
             "invite_join": true,
             "auto_rejoin": false,
@@ -58,7 +58,7 @@
                 "ignore"
             ],
             "users": [
-                "examplec!user@example.com"
+                "stummi!~Stummi@stummi.org"
             ]
         }
     },
