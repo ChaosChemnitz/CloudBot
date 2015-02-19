@@ -162,16 +162,6 @@ def topic_update(info, conn=None, chan=None):
     if new_topic != topic:
         conn.send("TOPIC %s :%s" % (chan, new_topic))
 
-@hook.event("JOIN")
-def handle_join(info, input=None, conn=None):
-    conn.ctcp(input.nick, "VERSION", "")
-
-@hook.event("NOTICE")
-def handle_ctcp_rply(info, input=None, conn=None, nick=None):
-    if input.lastparam == "\1%s\1" % "mIRC v7.22 Khaled Mardam-Bey":
-        for chan in conn.channels:
-            conn.send("KICK %s %s :bad version" % (chan, nick))
-
 @hook.event("332")
 def e332_update(info, conn=None, chan=None):
     """e332_update -- run after current topic was requested, runs worker tasks too"""
