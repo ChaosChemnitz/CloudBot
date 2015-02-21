@@ -9,7 +9,8 @@ import json
 
 def run_ecmd(cmd):
 #    baseuri = "http://netio.chch.lan.ffc/ecmd?"
-    baseuri = "http://10.8.128.35/ecmd?"
+#    baseuri = "http://10.8.128.35/ecmd?"
+    baseuri = "http://127.0.0.1:4280/ecmd?"
     cmds = "%20".join(cmd)
     req = requests.get("%s%s" % (baseuri, cmds))
     return req.text.strip()
