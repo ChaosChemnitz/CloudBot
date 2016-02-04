@@ -88,7 +88,7 @@ def wiki_changes(cmd=False):
         return []
 
     rarr = []
-    changes = r.json["query"]["recentchanges"]
+    changes = r.json()["query"]["recentchanges"]
     ntimestamp = changes[0]["timestamp"]
     for change in changes:
         if change["timestamp"] == timestamp:
@@ -127,17 +127,25 @@ def cmd_wikichanges(inp, reply=None):
 
 # Status handling
 def getstatus():
-    try:
-	response = urllib.urlopen('https://www.chaoschemnitz.de/chch.json')
-	chch_json = response.read()
-	chch_info = json.loads(chch_json)
-	if chch_info['state']['open']:
-        	return "geöffnet".decode("utf-8")
-	else:
-        	return "geschlossen"
+#    try:
+        fd = requests.get('http://www.chaoschemnitz.de/chch.json')
+        chch_info = fd.json()
+        if 'message' in chch_info['state']:
+	    message = chch_info['state']['message']
+            if " | " in message:
+                message = message.split(" | ", 1)[0]
+            else:
+	        message = ""
+
+        if chch_info['state']['open']:
+	    state = "geöffnet".decode("utf-8")
+        else:
+	    state = "geschlossen"
+
+        return "%s (%s)" % (state, message)
 #        return check_output("sudo /bin/chch-status", shell=True).strip("\n").decode("utf-8")
-    except:
-        return "unbekannt"
+#    except:
+#        return "unbekannt"
 
 @hook.command("status", autohelp=False)
 def cmd_status(inp, reply=None):
@@ -146,22 +154,38 @@ def cmd_status(inp, reply=None):
 
 @hook.event("TOPIC")
 def topic_update(info, conn=None, chan=None):
+    print("topic update")
     """topic_update -- Update the topic on TOPIC command"""
-    status = getstatus()
-
-    topic = info[-1]
-
-    sstr = "Status: %s" % (status)
-    if sstr in topic:
+    if chan != "#ChaosChemnitz":
         return
 
-    if 'Status: ' in topic:
-	new_topic = re.sub("Status: [^ ]*", sstr, topic)
-    else:
-        new_topic = "%s | %s" % (topic.rstrip(' |'), sstr)
+    status = getstatus()
+    print("status: %s" % (status.encode('utf8')))
 
-    if new_topic != topic:
-        conn.send("TOPIC %s :%s" % (chan, new_topic))
+    topic = info[-1].split(" | ")
+    print("topic: %s" % ([ elem.encode('utf8') for elem in topic ]))
+
+    sstr = "Status: %s" % (status)
+    print("sstr: %s" % (sstr.encode('utf8')))
+    didset = False
+    i = 0
+    while i < len(topic):
+        if sstr in topic[i]:
+            print("Found current status in topic.")
+            didset = True
+            break
+        if 'Status: ' in topic[i]: 
+            print("Found Status field in topic.")
+            didset = True 
+            topic[i] = sstr
+        i += 1
+    if didset == False:
+        print("No topic fiel was found, appending.")
+        topic.append(sstr)
+
+    newtopic = " | ".join(topic)
+    if newtopic != info[-1]:
+        conn.send("TOPIC %s :%s" % (chan, newtopic))
 
 @hook.event("332")
 def e332_update(info, conn=None, chan=None):
