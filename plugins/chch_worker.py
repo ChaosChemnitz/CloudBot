@@ -232,13 +232,12 @@ def topic_update(info, conn=None, chan=None):
     if newtopic != info[-1]:
         conn.send("TOPIC %s :%s" % (chan, newtopic))
 
-"""
 @hook.event("332")
 def e332_update(info, conn=None, chan=None):
+    """e332_update -- run after current topic was requested, runs worker tasks too"""
     chan = info[1]
     topic_update(info, conn=conn, chan=chan)
     print_wiki_changes(info, conn=conn, chan=chan)
-"""
 
 @hook.singlethread
 @hook.event("353")
