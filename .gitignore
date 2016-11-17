@@ -1,5 +1,6 @@
 persist
 config
+config.ssl
 gitflow
 *.db
 *.log
