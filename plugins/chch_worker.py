@@ -6,6 +6,8 @@ import requests
 import urllib
 from subprocess import check_output
 import json
+import socket
+import struct
 
 def run_ecmd(cmd):
 #    baseuri = "http://netio.chch.lan.ffc/ecmd?"
@@ -14,6 +16,49 @@ def run_ecmd(cmd):
     cmds = "%20".join(cmd)
     req = requests.get("%s%s" % (baseuri, cmds))
     return req.text.strip()
+
+def run_udp(cmd):
+    ip="172.23.92.247"
+    port=49152
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # 10 ms timeout
+    s.settimeout(0.1)
+    s.sendto(cmd, (ip, port))
+    try:
+        rec = s.recvfrom(1024)[0]
+    except:
+        rec = ""
+    s.close()
+    print(rec)
+    return rec
+
+# lamp_lounge handling
+@hook.command("lamp_lounge", autohelp=True)
+def cmd_lamp_lounge(inp, reply=None):
+    """lamp_lounge color - set the lamp color"""
+    args = inp.split(" ")
+    if len(args) < 1:
+        reply("lamp_lounge color - set the lamp color")
+        return
+
+    if len(args[0]) != 6:
+        reply("lamp_lounge color - set the lamp color")
+        return
+
+    c = "a\x00\x03" + struct.pack('BBB', int(args[0][2:4], 16), int(args[0][0:2], 16), int(args[0][4:6], 16))
+
+    rep = run_udp(c)
+
+    if len(rep) < 3:
+        reply("Error: no reply")
+        return
+
+    if rep[0] == 'a':
+        reply("OK")
+    elif rep[0] == 'e':
+        reply("error: " + rep[3:])
+    else:
+        reply("fatal error")
 
 # Lamp handling
 @hook.command("lamp", autohelp=True)
@@ -187,12 +232,13 @@ def topic_update(info, conn=None, chan=None):
     if newtopic != info[-1]:
         conn.send("TOPIC %s :%s" % (chan, newtopic))
 
+"""
 @hook.event("332")
 def e332_update(info, conn=None, chan=None):
-    """e332_update -- run after current topic was requested, runs worker tasks too"""
     chan = info[1]
     topic_update(info, conn=conn, chan=chan)
     print_wiki_changes(info, conn=conn, chan=chan)
+"""
 
 @hook.singlethread
 @hook.event("353")
