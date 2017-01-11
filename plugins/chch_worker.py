@@ -17,19 +17,19 @@ def run_ecmd(cmd):
     req = requests.get("%s%s" % (baseuri, cmds))
     return req.text.strip()
 
-def run_udp(cmd):
-    ip="172.23.92.247"
+def run_tcp(cmd):
+    ip="172.23.92.15"
     port=49152
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # 10 ms timeout
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # 100 ms timeout
     s.settimeout(0.1)
-    s.sendto(cmd, (ip, port))
+    s.connect((ip, port))
+    s.send(cmd)
     try:
-        rec = s.recvfrom(1024)[0]
+        rec = s.recv(1024)
     except:
         rec = ""
     s.close()
-    print(rec)
     return rec
 
 # lamp_lounge handling
@@ -47,7 +47,7 @@ def cmd_lamp_lounge(inp, reply=None):
 
     c = "a\x00\x03" + struct.pack('BBB', int(args[0][2:4], 16), int(args[0][0:2], 16), int(args[0][4:6], 16))
 
-    rep = run_udp(c)
+    rep = run_tcp(c)
 
     if len(rep) < 3:
         reply("Error: no reply")
