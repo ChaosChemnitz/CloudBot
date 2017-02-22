@@ -18,7 +18,7 @@ def run_ecmd(cmd):
     return req.text.strip()
 
 def run_udp(cmd):
-    ip="172.23.92.247"
+    ip="127.0.0.1"
     port=49152
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # 10 ms timeout
