@@ -60,6 +60,12 @@ def cmd_lamp_lounge(inp, reply=None):
     else:
         reply("fatal error")
 
+@hook.command("lounge_light_toggle", autohelp=False)
+def cmd_ounge_light_toggle(inp, reply=None):
+    """toggle lounge light modes"""
+    reply(check_output("echo lounge_light_toggle | ssh -q -p 2322 command@127.0.0.1", shell=True).strip("\n").decode("utf-8"))
+    
+
 # Lamp handling
 @hook.command("lamp", autohelp=True)
 def cmd_lamp(inp, reply=None):
