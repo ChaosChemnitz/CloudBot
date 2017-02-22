@@ -1,6 +1,7 @@
 #!/bin/bash
 cd $(dirname $0)
 
+(
 PIDS=""
 for i in $(ps -awx | grep -i [c]loudbot | sed "s/^\s*//" | cut -d" " -f1); do
 	if [ $i != $$ ]; then
@@ -18,4 +19,5 @@ do
 	sudo -u cloudbot ./cloudbot.py 2>&1 | logger -s -t $(basename $0)
 	sleep 10
 done
-
+) &
+disown $!
