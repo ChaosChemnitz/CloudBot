@@ -77,7 +77,26 @@ def cmd_lounge_light(inp, reply=None):
        reply("lounge_light color - set the light color")
        return
 
-    reply(check_output("echo lounge_light " + args[0] + " | ssh -q -p 2322 command@127.0.0.1", shell=True).strip("\n").decode("utf-8"))    
+    reply(check_output("echo lounge_light " + args[0] + " | ssh -q -p 2322 command@127.0.0.1", shell=True).strip("\n").decode("utf-8")) 
+
+@hook.command("e-lab_light_toggle", autohelp=False)
+def cmd_e-lab_light_toggle(inp, reply=None):
+    """toggle e-lab light modes"""
+    reply(check_output("echo e-lab_light_toggle | ssh -q -p 2322 command@127.0.0.1", shell=True).strip("\n").decode("utf-8"))
+
+@hook.command("e-lab_light", autohelp=False)
+def cmd_e-lab_light(inp, reply=None):
+    """set e-lab light color"""
+    args = inp.split(" ")
+    if len(args) < 1:
+       reply("e-lab_light color - set the light color")
+       return
+
+    if len(args[0]) != 6:
+       reply("e-lab_light color - set the light color")
+       return
+
+    reply(check_output("echo e-lab_light " + args[0] + " | ssh -q -p 2322 command@127.0.0.1", shell=True).strip("\n").decode("utf-8"))
 
 # Lamp handling
 @hook.command("lamp", autohelp=True)
