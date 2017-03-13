@@ -9,56 +9,56 @@ import json
 import socket
 import struct
 
-def run_ecmd(cmd):
-#    baseuri = "http://netio.chch.lan.ffc/ecmd?"
-#    baseuri = "http://10.8.128.35/ecmd?"
-    baseuri = "http://127.0.0.1:4280/ecmd?"
-    cmds = "%20".join(cmd)
-    req = requests.get("%s%s" % (baseuri, cmds))
-    return req.text.strip()
+#def run_ecmd(cmd):
+##    baseuri = "http://netio.chch.lan.ffc/ecmd?"
+##    baseuri = "http://10.8.128.35/ecmd?"
+#    baseuri = "http://127.0.0.1:4280/ecmd?"
+#    cmds = "%20".join(cmd)
+#    req = requests.get("%s%s" % (baseuri, cmds))
+#    return req.text.strip()
 
-def run_udp(cmd):
-    ip="127.0.0.1"
-    port=49152
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # 100 ms timeout
-    s.settimeout(0.1)
-    s.connect((ip, port))
-    s.send(cmd)
-    try:
-        rec = s.recv(1024)
-    except:
-        rec = ""
-    s.close()
-    return rec
+#def run_udp(cmd):
+#    ip="127.0.0.1"
+#    port=49152
+#    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#    # 100 ms timeout
+#    s.settimeout(0.1)
+#    s.connect((ip, port))
+#    s.send(cmd)
+#    try:
+#        rec = s.recv(1024)
+#    except:
+#        rec = ""
+#    s.close()
+#    return rec
 
-# lamp_lounge handling
-@hook.command("lamp_lounge", autohelp=True)
-def cmd_lamp_lounge(inp, reply=None):
-    """lamp_lounge color - set the lamp color"""
-    args = inp.split(" ")
-    if len(args) < 1:
-        reply("lamp_lounge color - set the lamp color")
-        return
-
-    if len(args[0]) != 6:
-        reply("lamp_lounge color - set the lamp color")
-        return
-
-    c = "a\x00\x03" + struct.pack('BBB', int(args[0][2:4], 16), int(args[0][0:2], 16), int(args[0][4:6], 16))
-
-    rep = run_tcp(c)
-
-    if len(rep) < 3:
-        reply("Error: no reply")
-        return
-
-    if rep[0] == 'a':
-        reply("OK")
-    elif rep[0] == 'e':
-        reply("error: " + rep[3:])
-    else:
-        reply("fatal error")
+## lamp_lounge handling
+#@hook.command("lamp_lounge", autohelp=True)
+#def cmd_lamp_lounge(inp, reply=None):
+#    """lamp_lounge color - set the lamp color"""
+#    args = inp.split(" ")
+#    if len(args) < 1:
+#        reply("lamp_lounge color - set the lamp color")
+#        return
+#
+#    if len(args[0]) != 6:
+#        reply("lamp_lounge color - set the lamp color")
+#        return
+#
+#    c = "a\x00\x03" + struct.pack('BBB', int(args[0][2:4], 16), int(args[0][0:2], 16), int(args[0][4:6], 16))
+#
+#    rep = run_tcp(c)
+#
+#    if len(rep) < 3:
+#        reply("Error: no reply")
+#        return
+#
+#    if rep[0] == 'a':
+#        reply("OK")
+#    elif rep[0] == 'e':
+#        reply("error: " + rep[3:])
+#    else:
+#        reply("fatal error")
 
 @hook.command("lounge_light_toggle", autohelp=False)
 def cmd_lounge_light_toggle(inp, reply=None):
@@ -79,55 +79,55 @@ def cmd_lounge_light(inp, reply=None):
 
     reply(check_output("echo lounge_light " + args[0] + " | ssh -q -p 2322 command@127.0.0.1", shell=True).strip("\n").decode("utf-8"))    
 
-# Lamp handling
-@hook.command("lamp", autohelp=True)
-def cmd_lamp(inp, reply=None):
-    """lamp color [mode] - set the lamp color"""
-    args = inp.split(" ")
-    if len(args) < 1:
-        reply("""lamp color [mode] - set the lamp color""")
-        return
+## Lamp handling
+#@hook.command("lamp", autohelp=True)
+#def cmd_lamp(inp, reply=None):
+#    """lamp color [mode] - set the lamp color"""
+#    args = inp.split(" ")
+#    if len(args) < 1:
+#        reply("""lamp color [mode] - set the lamp color""")
+#        return
+#
+#    if len(args[0]) != 6:
+#        reply("""lamp color [mode] - set the lamp color""")
+#        return
+#
+#    cmode = "s"
+#    if len(args) > 1:
+#        if args[1] == "s" or args[1] == "y" or args[1] == "f":
+#            cmode = args[1]
+#
+#    c = []
+#    c.append([5, int(args[0][0:2], 16)])
+#    c.append([4, int(args[0][2:4], 16)])
+#    c.append([3, int(args[0][4:6], 16)])
+#
+#    for ce in c:
+#        res = run_ecmd(["channel", str(ce[0]), str(ce[1]), cmode])
+#        if res != "OK":
+#             return
+#    reply("OK")
 
-    if len(args[0]) != 6:
-        reply("""lamp color [mode] - set the lamp color""")
-        return
+#@hook.command("lamp_fadestep", autohelp=True)
+#def cmd_lamp_fadestep(inp, reply=None):
+#    """lamp_fadestep step - set the lamp fadestep"""
+#    args = inp.split(" ")
+#
+#    if len(args) < 1:
+#        reply("""lamp_fadestep step - set the lamp fadestep""")
+#        return
+#
+#    reply(run_ecmd(["fadestep", args[0]]))
 
-    cmode = "s"
-    if len(args) > 1:
-        if args[1] == "s" or args[1] == "y" or args[1] == "f":
-            cmode = args[1]
-
-    c = []
-    c.append([5, int(args[0][0:2], 16)])
-    c.append([4, int(args[0][2:4], 16)])
-    c.append([3, int(args[0][4:6], 16)])
-
-    for ce in c:
-        res = run_ecmd(["channel", str(ce[0]), str(ce[1]), cmode])
-        if res != "OK":
-             return
-    reply("OK")
-
-@hook.command("lamp_fadestep", autohelp=True)
-def cmd_lamp_fadestep(inp, reply=None):
-    """lamp_fadestep step - set the lamp fadestep"""
-    args = inp.split(" ")
-
-    if len(args) < 1:
-        reply("""lamp_fadestep step - set the lamp fadestep""")
-        return
-
-    reply(run_ecmd(["fadestep", args[0]]))
-
-@hook.command("lamp_fadestep_get", autohelp=False)
-def cmd_lamp_fadestep_get(inp, reply=None):
-    """lamp_fadestep_get - get the lamp fadestep"""
-    reply(run_ecmd(["fadestep"]))
-
-@hook.command("lamp_channels", autohelp=False)
-def cmd_lamp_channels(inp, reply=None):
-    """lamp_chanels - get the lamp channel count"""
-    reply(run_ecmd(["channels"]))
+#@hook.command("lamp_fadestep_get", autohelp=False)
+#def cmd_lamp_fadestep_get(inp, reply=None):
+#    """lamp_fadestep_get - get the lamp fadestep"""
+#    reply(run_ecmd(["fadestep"]))
+#
+#@hook.command("lamp_channels", autohelp=False)
+#def cmd_lamp_channels(inp, reply=None):
+#    """lamp_chanels - get the lamp channel count"""
+#    reply(run_ecmd(["channels"]))
 
 # Wiki handling
 def wiki_changes(cmd=False):
